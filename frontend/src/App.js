@@ -8,6 +8,8 @@ function App() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [author, setAuthor] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+  const [editPostId, setEditPostId] = useState(null);
 
   useEffect(() => {
     // Fetch all blog posts on load
@@ -16,15 +18,47 @@ function App() {
     });
   }, []);
 
+  // Create a new blog post
   const handleCreatePost = async () => {
     const newPost = { title, content, author };
     await axios.post(API_URL, newPost);
     setTitle("");
     setContent("");
     setAuthor("");
-    // Reload posts
+    fetchPosts();
+  };
+
+  // Fetch all posts again
+  const fetchPosts = async () => {
     const response = await axios.get(API_URL);
     setPosts(response.data);
+  };
+
+  // Delete a post
+  const handleDeletePost = async (postId) => {
+    await axios.delete(`${API_URL}${postId}`);
+    fetchPosts(); // Refresh the posts list
+  };
+
+  // Populate the form fields for editing
+  const handleEditPost = (post) => {
+    setTitle(post.title);
+    setContent(post.content);
+    setAuthor(post.author);
+    setEditPostId(post._id);
+    setIsEditing(true);
+  };
+
+  // Update a post
+  const handleUpdatePost = async () => {
+    const updatedPost = { title, content, author };
+    await axios.put(`${API_URL}${editPostId}`, updatedPost);
+    setTitle("");
+    setContent("");
+    setAuthor("");
+    setIsEditing(false);
+    setEditPostId(null);
+    fetchPosts(); // Refresh the posts list
   };
 
   return (
@@ -48,8 +82,14 @@ function App() {
           value={author}
           onChange={(e) => setAuthor(e.target.value)}
         />
-        <button onClick={handleCreatePost}>Create Post</button>
+
+        {isEditing ? (
+          <button onClick={handleUpdatePost}>Update Post</button>
+        ) : (
+          <button onClick={handleCreatePost}>Create Post</button>
+        )}
       </div>
+
       <h2>Posts</h2>
       {posts.map((post) => (
         <div key={post._id}>
@@ -58,6 +98,8 @@ function App() {
           <p>
             <b>Author:</b> {post.author}
           </p>
+          <button onClick={() => handleEditPost(post)}>Edit</button>
+          <button onClick={() => handleDeletePost(post._id)}>Delete</button>
         </div>
       ))}
     </div>

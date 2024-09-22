@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from models import BlogPost
 from database import post_collection
 from bson import ObjectId
+from fastapi.exceptions import HTTPException
 
 app = FastAPI()
 
@@ -14,6 +15,7 @@ app.add_middleware(
     allow_methods=["*"],  # Allow all HTTP methods
     allow_headers=["*"],  # Allow all headers
 )
+
 
 # Routes (create, read, update, delete)
 
